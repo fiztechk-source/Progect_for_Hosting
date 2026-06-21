@@ -178,29 +178,29 @@ with batch_tab:
             st.subheader("Результаты")
 
             st.dataframe(projects)
-    import io
+        import io
 
-    buffer = io.BytesIO()
+        buffer = io.BytesIO()
 
-    with pd.ExcelWriter(
-    buffer,
-    engine="openpyxl"
-    ) as writer:
-        projects.to_excel(
-        writer,
-        index=False
+        with pd.ExcelWriter(
+        buffer,
+        engine="openpyxl"
+        ) as writer:
+            projects.to_excel(
+            writer,
+            index=False
+            )
+
+        st.download_button(
+        label="Скачать результаты",
+        data=buffer.getvalue(),
+        file_name="results.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-
-    st.download_button(
-    label="Скачать результаты",
-    data=buffer.getvalue(),
-    file_name="results.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-    projects = projects.sort_values(
-    "Вероятность успеха",
-    ascending=False
-    )
+        projects = projects.sort_values(
+        "Вероятность успеха",
+        ascending=False
+        )
 
 # =====================================================
 # ВКЛАДКА АНАЛИТИКИ
