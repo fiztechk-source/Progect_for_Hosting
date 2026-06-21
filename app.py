@@ -200,10 +200,6 @@ with batch_tab:
         file_name="results.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-        projects = projects.sort_values(
-        "Вероятность успеха",
-        ascending=False
-        )
 
 # =====================================================
 # ВКЛАДКА АНАЛИТИКИ
