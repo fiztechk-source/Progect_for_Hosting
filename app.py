@@ -48,9 +48,10 @@ model = joblib.load(model_path)
 # ВКЛАДКИ
 # ----------------------
 
-prediction_tab, analytics_tab = st.tabs([
-    'Предсказание',
-    'Аналитика'
+prediction_tab, batch_tab, analytics_tab = st.tabs([
+    "Оценка проекта",
+    "Пакетная оценка",
+    "Аналитика"
 ])
 
 
@@ -127,6 +128,79 @@ with prediction_tab:
         else:
             st.success('Высокая вероятность успешности проекта')
 
+# =====================================================
+# ВКЛАДКА ПАКЕТНОЙ АНАЛИТИКИ
+# =====================================================
+
+with batch_tab:
+
+    st.header("Пакетная оценка проектов")
+
+    uploaded_file = st.file_uploader(
+        "Загрузите Excel-файл",
+        type=["xlsx"]
+    )
+
+    if uploaded_file:
+
+        projects = pd.read_excel(uploaded_file)
+
+        st.subheader("Загруженные данные")
+
+        st.dataframe(projects)
+
+        if st.button("Выполнить оценку"):
+
+            features = [
+                "Объем рынка",
+                "Конкурентная дифференциация",
+                "Мнение клиентов",
+                "Технологическая готовность"
+            ]
+
+            probabilities = model.predict_proba(
+                projects[features]
+            )[:, 1]
+
+            projects["Вероятность успеха"] = (
+                probabilities * 100
+            ).round(2)
+
+            projects["Интерпретация"] = projects[
+                "Вероятность успеха"
+            ].apply(
+                lambda x:
+                    "Высокая вероятность"
+                    if x >= 70
+                    else "Низкая вероятность"
+            )
+
+            st.subheader("Результаты")
+
+            st.dataframe(projects)
+    import io
+
+    buffer = io.BytesIO()
+
+    with pd.ExcelWriter(
+    buffer,
+    engine="openpyxl"
+    ) as writer:
+        projects.to_excel(
+        writer,
+        index=False
+        )
+
+    st.download_button(
+    label="Скачать результаты",
+    data=buffer.getvalue(),
+    file_name="results.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    projects = projects.sort_values(
+    "Вероятность успеха",
+    ascending=False
+    )
 
 # =====================================================
 # ВКЛАДКА АНАЛИТИКИ
