@@ -134,78 +134,75 @@ with prediction_tab:
 with analytics_tab:
 
     st.header('Аналитика модели')
-    uploaded_file = st.file_uploader(
-        'Загрузите Excel-файл с датасетом',
-        type=['xlsx']
+    data = pd.read_excel(
+    "data/dataset.xlsx")
+
+
+    data = pd.read_excel(
+    "data/dataset.xlsx"
     )
 
+    features = [
+    'Объем рынка',
+    'Конкурентная дифференциация',
+    'Мнение клиентов',
+    'Технологическая готовность'
+    ]
 
-    if uploaded_file:
+    X = data[features]
+    y = data['Успех']
 
-        data = pd.read_excel(uploaded_file)
-
-        features = [
-            'Объем рынка',
-            'Конкурентная дифференциация',
-            'Мнение клиентов',
-            'Технологическая готовность'
-        ]
-
-        X = data[features]
-        y = data['Успех']
+    pred = model.predict(X)
+    proba = model.predict_proba(X)[:,1]
 
 
-        pred = model.predict(X)
-        proba = model.predict_proba(X)[:, 1]
+    # ROC CURVE
+    fpr, tpr, _ = roc_curve(y, proba)
+    roc_auc = auc(fpr, tpr)
 
 
-        # ROC CURVE
-        fpr, tpr, _ = roc_curve(y, proba)
-        roc_auc = auc(fpr, tpr)
+    fig, ax = plt.subplots(figsize=(6, 4))
+
+    ax.plot(fpr, tpr, label=f'ROC-AUC = {roc_auc:.3f}')
+    ax.plot([0, 1], [0, 1], linestyle='--')
+
+    ax.set_xlabel('False Positive Rate')
+    ax.set_ylabel('True Positive Rate')
+    ax.set_title('ROC-кривая')
+
+    ax.legend()
+
+    st.pyplot(fig)
 
 
-        fig, ax = plt.subplots(figsize=(6, 4))
+    # ВАЖНОСТЬ ПРИЗНАКОВ
+    st.subheader('Важность признаков')
 
-        ax.plot(fpr, tpr, label=f'ROC-AUC = {roc_auc:.3f}')
-        ax.plot([0, 1], [0, 1], linestyle='--')
+    importance_df = pd.DataFrame({
+        'Признак': features,
+        'Важность': model.feature_importances_
+    }).sort_values(by='Важность', ascending=False)
 
-        ax.set_xlabel('False Positive Rate')
-        ax.set_ylabel('True Positive Rate')
-        ax.set_title('ROC-кривая')
-
-        ax.legend()
-
-        st.pyplot(fig)
+    st.dataframe(importance_df)
 
 
-        # ВАЖНОСТЬ ПРИЗНАКОВ
-        st.subheader('Важность признаков')
+    # CONFUSION MATRIX
+    st.subheader('Confusion Matrix')
 
-        importance_df = pd.DataFrame({
-            'Признак': features,
-            'Важность': model.feature_importances_
-        }).sort_values(by='Важность', ascending=False)
+    cm = confusion_matrix(y, pred)
 
-        st.dataframe(importance_df)
+    fig_cm, ax_cm = plt.subplots(figsize=(5, 5))
 
+    disp = ConfusionMatrixDisplay(
+        confusion_matrix=cm
+    )
 
-        # CONFUSION MATRIX
-        st.subheader('Confusion Matrix')
+    disp.plot(ax=ax_cm)
 
-        cm = confusion_matrix(y, pred)
-
-        fig_cm, ax_cm = plt.subplots(figsize=(5, 5))
-
-        disp = ConfusionMatrixDisplay(
-            confusion_matrix=cm
-        )
-
-        disp.plot(ax=ax_cm)
-
-        st.pyplot(fig_cm)
+    st.pyplot(fig_cm)
 
 
-        # ТАБЛИЦА ДАННЫХ
-        st.subheader('Данные')
+    # ТАБЛИЦА ДАННЫХ
+    st.subheader('Данные')
 
-        st.dataframe(data)
+    st.dataframe(data)
