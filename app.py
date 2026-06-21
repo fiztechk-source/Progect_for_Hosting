@@ -174,7 +174,10 @@ with batch_tab:
                     if x >= 70
                     else "Низкая вероятность"
             )
-
+            projects = projects.sort_values(
+            "Вероятность успеха",
+            ascending=False
+            )
             st.subheader("Результаты")
 
             st.dataframe(projects)
